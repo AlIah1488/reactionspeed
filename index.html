@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,6 +11,10 @@
         body{
             background-color: #1B2631;
             color: #F5F5F5;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         h1{
             color: #2C3E50;
@@ -20,17 +25,29 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-weight: 700;
+            transition: color 0.3s ease;
         }
-        h2{
+        #gg{
             color: #ECEFF1;
             font-size: 50px;
             position: absolute;
             top: 0;
             right: 0;
             font-family: Verdana, sans-serif;
+            transition: color 0.3s ease;
+        }
+        #ggnebydet{
+            color: #ECEFF1;
+            font-size: 50px;
+            position: absolute;
+            top: 50px;
+            right: 0;
+            font-family: Verdana, sans-serif;
+            transition: color 0.3s ease;
         }
         #react{
             background-color: #0077b6;
+;
             width: 30px;
             height: 30px;
             border-radius: 20%;
@@ -38,8 +55,10 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            outline: none; /* disable outline */
+            outline: none; 
+            transition: color 0.3s ease, top 1s ease, left 1s ease;
         }
+
         #clear{
             background-color: #0077b6;
             border-radius: 8px;
@@ -47,51 +66,103 @@
             right: 50px;
             top: 90%;
             color: #fff;
-            outline: none; /* disable outline */
+            outline: none; 
+            width: 10%;
+            height: 5%;
         }
     </style>
 </head>
 <body>
-    <h1 >TEST YOUR REACTION</h1>
+    <h1 id="ggbydet">TAP TO START</h1>
     <h2 id="gg">Score: 0</h2>
-    <!-- Add a class 'no-keyboard' to the button to disable keyboard input -->
+    <h2 id="ggnebydet">0.00ms</h2>
 <button id="react" tabindex="-1" onkeydown="return event.key != 'Enter';" class="no-keyboard"></button> 
 <button id="clear" tabindex="-1" onkeydown="return event.key != 'Enter';" class="no-keyboard">CLEAR</button>
 <script>
     let a = localStorage.getItem("a") ? parseInt(localStorage.getItem("a")) : 0;
+    let lastClicks = [];
     const gg = document.getElementById("gg");
+    const ggbydet = document.getElementById("ggbydet");
     const react = document.getElementById("react");
     const clear = document.getElementById("clear");
-    react.addEventListener("mousedown", function() {
-        // Increment score, update and save the score
+    const ggnebydet = document.getElementById("ggnebydet");
+    const times = [];
+
+    const calculateAverage = () => {
+        times.push(Date.now());
+        if (times.length > 10) times.shift();
+
+        const deltaTimes = times.map((t, i) => (i === 0 ? 0 : t - times[i - 1]));
+        const avgTime = deltaTimes.reduce((a, b) => a + b, 0) / deltaTimes.length;
+        ggnebydet.innerHTML = `${avgTime.toFixed(2)}ms`;
+    };
+
+    const changeColor = () => {
+        ggbydet.style.color = "#1B2631";
+        
+        setTimeout(() =>{
+            ggbydet.innerHTML = "TEST YOUR REACTION";
+            ggbydet.style.color = "#2C3E50";  
+        }, 200);
+    };
+    const clearColor = () => {
+        ggnebydet.style.color = "#1B2631";
+        gg.style.color = "#1B2631";
+        setTimeout(() =>{
+            gg.innerHTML = "Score: 0";
+            localStorage.setItem("a", 0);
+            a = 0;
+            ggnebydet.innerHTML = "0.00ms"
+            ggnebydet.style.color = "#ECEFF1";  
+            gg.style.color = "#ECEFF1";  
+        }, 200);
+    };
+
+    react.addEventListener("mousedown", () => {
+        if (ggbydet.innerHTML == "TAP TO START"){
+            changeColor();
+        }
+        
+        calculateAverage();
+
         a = a + 1;
+        react.style.color = "white";
         gg.innerHTML = "Score: " + a;
         localStorage.setItem("a", a);
 
-        // Calculate random position for the button within the visible screen
-        const margin = 0.5; // 20% margin
+        const margin = 0.3;
         const maxWidth = window.innerWidth * (1 - margin) - react.clientWidth;
         const maxHeight = window.innerHeight * (1 - margin) - react.clientHeight;
 
-        const randomX = Math.floor(Math.random() * maxWidth) + window.innerWidth * margin;
-        const randomY = Math.floor(Math.random() * maxHeight) + window.innerHeight * margin;
+        let randomX = Math.floor(Math.random() * maxWidth) + window.innerWidth * margin;
+        let randomY = Math.floor(Math.random() * maxHeight) + window.innerHeight * margin;
 
-        // Update the position of the button
+        if (randomX < 0) {
+            randomX = 0;
+        }
+        if (randomX > maxWidth) {
+            randomX = maxWidth;
+        }
+        if (randomY < 0) {
+            randomY = 0;
+        }
+        if (randomY > maxHeight) {
+            randomY = maxHeight;
+        }
+
         react.style.top = `${randomY}px`;
         react.style.left = `${randomX}px`;
     });
-    clear.addEventListener("mousedown", function(){
-        gg.innerHTML = "Score: 0";
-        localStorage.setItem("a", 0);
-        a = 0;
+
+    clear.addEventListener("mousedown", () => {
+        clearColor();
     });
-    // Update the score on page load
-    window.addEventListener("load", function(){
+
+    window.addEventListener("load", () => {
         a = localStorage.getItem("a") ? parseInt(localStorage.getItem("a")) : 0;
         gg.innerHTML = "Score: " + a;
     });
 
-    // Add CSS to disable outline when button is clicked with mouse
     const style = document.createElement('style');
     style.innerHTML = `
         .no-keyboard:focus {
@@ -100,6 +171,10 @@
     `;
     document.head.appendChild(style);
 </script>
+
+
+    
+  
 
 
 </body>
